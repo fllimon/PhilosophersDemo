@@ -18,6 +18,8 @@ namespace PhilosopherDemo
         private string _philosopherName;
         private int _handForks;
         private int _time;
+        private Fork _rightFork;
+        private Fork _leftFork;
 
         private DeathPhilosopher _deathPhilosopher = null;
         private EatPhilosopher _eatPhilosopher = null;
@@ -117,21 +119,24 @@ namespace PhilosopherDemo
 
         #region ========------- CTOR -------=========
 
-        public Philosopher(string name, int handForks)
+        public Philosopher(string name, /*int handForks*/ Fork leftFork, Fork rightFork)
         {
             _philosopherName = name;
-            _handForks = handForks;
+            _leftFork = leftFork;
+            _rightFork = rightFork;
+            //_handForks = handForks;
             Dead += GetDieHandler;
         }
 
         #endregion
 
-        private void GetForks(List<Fork> fork)
+        private void GetForks()
         {
-            int firstFork = _handForks;
-            int secondFork = (_handForks + 1) % (fork.Count - 1);
+            //int firstFork = _handForks;
+            //int secondFork = (_handForks + 1) % (fork.Count - 1);
 
-            if (!fork[firstFork].IsUsingForks && !fork[secondFork].IsUsingForks)
+            //if (!fork[firstFork].IsUsingForks && !fork[secondFork].IsUsingForks)
+            if (!_leftFork.IsUsingForks && !_rightFork.IsUsingForks)
             {
                 if (_eatPhilosopher != null)
                 {
@@ -141,9 +146,9 @@ namespace PhilosopherDemo
                 _isThink = true;
 
 #if true
-                Console.WriteLine($"Философ {_philosopherName} ест вилками {firstFork} - {secondFork}");
+                Console.WriteLine($"Философ {_philosopherName} ест вилками {_leftFork.ForkNumber} - {_rightFork.ForkNumber}");
 
-                Logger.Log(DateTime.Now, Thread.CurrentThread.Name, $"Философ {_philosopherName} ест вилками {firstFork} - {secondFork} -- " +
+                Logger.Log(DateTime.Now, Thread.CurrentThread.Name, $"Философ {_philosopherName} ест вилками {_leftFork.ForkNumber} - {_rightFork.ForkNumber} -- " +
                            $"Статус голода: {_isHungry} -- Статус думает: {_isThink} -- Статус жизни: {_isDeath}");
 #endif
             }
@@ -160,28 +165,23 @@ namespace PhilosopherDemo
             }
         }
 
-        public void Start(object obj)
+        public void Start()
         {
-            if (_isDeath)
-            {
-                //Thread.CurrentThread.Abort();   // ToDo: Вопрос !!!
-
-                return;
-            }
-
             while (true)
             {
-                Thread.Sleep(1000);
-
-                lock (_philosopherObj)
+                if (_isDeath)
                 {
-                    _time = DateTime.Now.Millisecond;
-                    ChangeStatus();
-                    
-                    if (_isHungry)
-                    {
-                        GetForks((List<Fork>)obj);
-                    }
+                    break;
+                }
+
+                Thread.Sleep(1000);
+                
+                _time = DateTime.Now.Millisecond;
+                ChangeStatus();
+
+                if (_isHungry)
+                {
+                    GetForks();
                 }
             }
         }
@@ -194,10 +194,10 @@ namespace PhilosopherDemo
 
         private void GetDieHandler(object sender, DeathPhilosopherEventArgs args)
         {
-            if (args.Time > 800)
+            if (args.Time > 5000)
             {
 #if true
-                Logger.Log(DateTime.Now, Thread.CurrentThread.Name, $"Философ {_philosopherName} поел! " +
+                Logger.Log(DateTime.Now, Thread.CurrentThread.Name, $"Философ {_philosopherName} умер...! " +
                        $"-- Статус голода: {_isHungry} -- Статус думает: {_isThink} -- Статус жизни: {_isDeath} ");
 
                 Console.WriteLine($"Философ {_philosopherName} умер...");

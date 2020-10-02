@@ -33,7 +33,7 @@ namespace PhilosopherDemo
 
         private void GetThinkHandler(object sender, ThinkPhilosopherEventArgs args)
         {
-            if (!_somePhilosopher.IsHungry)
+            if (_somePhilosopher.IsThink)
             {
 #if true
                 Logger.Log(DateTime.Now, Thread.CurrentThread.Name, $"Философ {_somePhilosopher.PhilosopherName} думает... " +
